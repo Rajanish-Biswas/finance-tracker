@@ -1,0 +1,512 @@
+[index.html.html](https://github.com/user-attachments/files/26172135/index.html.html)
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Personal Finance Tracker — BDT</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:system-ui,sans-serif;font-size:13px;color:#1a1a1a;background:#f5f5f0;min-height:100vh;padding:12px}
+.app{padding:12px;max-width:1200px;margin:0 auto;background:#fff;border-radius:10px;box-shadow:0 2px 12px rgba(0,0,0,0.08)}
+.tabs{display:flex;gap:4px;margin-bottom:12px;border-bottom:1px solid #e0e0d8;padding-bottom:0}
+.tab{padding:6px 14px;cursor:pointer;font-size:12px;color:#888;border-bottom:2px solid transparent;margin-bottom:-1px}
+.tab.active{color:#1a1a1a;border-bottom-color:#1D9E75;font-weight:500}
+.page{display:none}.page.active{display:block}
+.card{background:#fff;border:0.5px solid #e0e0d8;border-radius:8px;padding:10px 12px}
+.tbl{width:100%;border-collapse:collapse;font-size:12px}
+.tbl th{background:#f5f5f0;color:#888;font-weight:500;padding:5px 8px;text-align:left;border-bottom:0.5px solid #e0e0d8}
+.tbl td{padding:5px 8px;border-bottom:0.5px solid #e0e0d8;color:#1a1a1a}
+.tbl tr:hover td{background:#f9f9f5}
+.tbl tr:last-child td{border-bottom:none}
+.inp{background:#f5f5f0;border:0.5px solid #e0e0d8;border-radius:4px;padding:4px 8px;font-size:12px;color:#1a1a1a;width:100%}
+.inp:focus{outline:none;border-color:#1D9E75}
+select.inp{cursor:pointer}
+.btn{background:#1D9E75;color:#fff;border:none;border-radius:4px;padding:6px 14px;font-size:12px;cursor:pointer;font-weight:500}
+.btn:hover{background:#0F6E56}
+.btn-sm{padding:3px 8px;font-size:11px}
+.btn-red{background:#D85A30}.btn-red:hover{background:#993C1D}
+.row-form{display:flex;gap:6px;align-items:center;margin-bottom:8px;flex-wrap:wrap}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:2px;margin-top:6px}
+.cal-day{border:0.5px solid #e0e0d8;border-radius:4px;min-height:48px;padding:3px 4px;font-size:10px}
+.cal-day .day-num{font-weight:500;color:#888;margin-bottom:2px}
+.cal-day .day-amt{font-size:10px;font-weight:500;color:#1D9E75}
+.cal-day.has-tx{background:#E1F5EE}
+.cal-header{display:grid;grid-template-columns:repeat(7,1fr);gap:2px;margin-bottom:2px}
+.cal-header span{font-size:10px;font-weight:500;color:#888;text-align:center;padding:3px}
+.legend-row{display:flex;align-items:center;gap:5px;font-size:11px;margin-bottom:3px;color:#888}
+.legend-dot{width:8px;height:8px;border-radius:2px;flex-shrink:0}
+.kpi-row{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px}
+.kpi{background:#f5f5f0;border-radius:6px;padding:8px 10px}
+.kpi-label{font-size:10px;color:#888;margin-bottom:2px}
+.kpi-val{font-size:14px;font-weight:500}
+.progress-bar{height:6px;background:#e0e0d8;border-radius:3px;overflow:hidden;margin-top:4px}
+.progress-fill{height:100%;border-radius:3px;background:#1D9E75}
+.section-head{font-size:10px;font-weight:500;color:#888;text-transform:uppercase;letter-spacing:.5px;margin:10px 0 6px;padding-bottom:4px;border-bottom:0.5px solid #e0e0d8}
+.empty-msg{font-size:11px;color:#bbb;text-align:center;padding:12px 0}
+</style>
+</head>
+<body>
+<div class="app">
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;padding-bottom:8px;border-bottom:1px solid #e0e0d8">
+    <span style="font-size:15px;font-weight:500">&#2547; Personal Finance Tracker</span>
+    <span style="font-size:10px;color:#aaa">All amounts in BDT (&#2547;)</span>
+  </div>
+  <div class="tabs">
+    <div class="tab active" onclick="showPage('monthly',event)">Monthly View</div>
+    <div class="tab" onclick="showPage('transactions',event)">Transactions</div>
+    <div class="tab" onclick="showPage('portfolio',event)">Portfolio &amp; Loans</div>
+  </div>
+
+  <!-- MONTHLY PAGE -->
+  <div id="page-monthly" class="page active">
+    <div style="display:grid;grid-template-columns:250px 1fr 210px;gap:10px">
+
+      <!-- LEFT -->
+      <div>
+        <div class="kpi-row">
+          <div class="kpi"><div class="kpi-label">Income</div><div class="kpi-val" style="color:#1D9E75" id="kpi-income">৳0</div></div>
+          <div class="kpi"><div class="kpi-label">Expenses</div><div class="kpi-val" style="color:#D85A30" id="kpi-expense">৳0</div></div>
+        </div>
+        <div class="kpi-row">
+          <div class="kpi"><div class="kpi-label">Savings</div><div class="kpi-val" style="color:#378ADD" id="kpi-savings">৳0</div></div>
+          <div class="kpi"><div class="kpi-label">Remaining</div><div class="kpi-val" id="kpi-remaining">৳0</div></div>
+        </div>
+        <div class="kpi-row">
+          <div style="background:#1D9E75;border-radius:6px;padding:8px 10px;color:#fff">
+            <div style="font-size:10px;opacity:.8">Savings Rate</div>
+            <div style="font-size:17px;font-weight:500" id="savings-rate">0%</div>
+          </div>
+          <div style="background:#E1F5EE;border-radius:6px;padding:8px 10px">
+            <div style="font-size:10px;color:#085041">Budget Compliance</div>
+            <div style="font-size:17px;font-weight:500;color:#085041" id="budget-compliance">0%</div>
+          </div>
+        </div>
+
+        <div class="section-head">Planned vs Actual</div>
+        <div class="card" style="padding:8px 10px">
+          <table class="tbl">
+            <thead><tr><th>Category</th><th>Planned</th><th>Actual</th></tr></thead>
+            <tbody id="planned-tbody"></tbody>
+          </table>
+          <div style="display:flex;gap:4px;margin-top:8px">
+            <select class="inp" id="p-cat" style="flex:1.3">
+              <option value="">Select category</option>
+              <option>Income</option><option>Bills</option><option>Expenses</option>
+              <option>Savings</option><option>Investments</option><option>Debt</option>
+            </select>
+            <input class="inp" id="p-plan" placeholder="৳ Amount" type="number" style="flex:1">
+            <button class="btn btn-sm" onclick="addPlanned()">Set</button>
+          </div>
+        </div>
+
+        <div class="section-head">Spending at a Glance</div>
+        <div class="card">
+          <div id="bar-empty" class="empty-msg">Add transactions to see chart</div>
+          <div style="position:relative;height:110px;display:none" id="bar-wrap"><canvas id="bar-chart"></canvas></div>
+        </div>
+      </div>
+
+      <!-- CENTER -->
+      <div>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+          <button class="btn btn-sm" onclick="prevMonth()">&#9664;</button>
+          <span style="font-weight:500;font-size:13px" id="cal-title"></span>
+          <button class="btn btn-sm" onclick="nextMonth()">&#9654;</button>
+        </div>
+        <div style="font-size:10px;font-weight:500;color:#888;text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px">Spending Tracker</div>
+        <div class="cal-header">
+          <span>Sun</span><span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span>
+        </div>
+        <div class="cal-grid" id="cal-grid"></div>
+
+        <div class="section-head" style="margin-top:10px">Spending per Category</div>
+        <div class="card">
+          <div id="donut-empty" class="empty-msg">Add expense transactions to see breakdown</div>
+          <div id="donut-wrap" style="display:none;align-items:center;gap:12px">
+            <div style="position:relative;width:100px;height:100px;flex-shrink:0">
+              <canvas id="donut-chart" width="100" height="100"></canvas>
+              <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center;font-size:11px;font-weight:500;line-height:1.3" id="donut-center"></div>
+            </div>
+            <div id="donut-legend" style="flex:1"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- RIGHT -->
+      <div>
+        <div class="section-head">Month Summary</div>
+        <div class="card">
+          <table class="tbl">
+            <thead><tr><th>Item</th><th>Planned</th><th>Actual</th></tr></thead>
+            <tbody id="summary-tbody"></tbody>
+          </table>
+        </div>
+
+        <div class="section-head">Month at a Glance</div>
+        <div class="card">
+          <div id="glance-empty" class="empty-msg">Add transactions to see</div>
+          <div id="glance-wrap" style="display:none">
+            <div style="position:relative;width:100px;height:100px;margin:0 auto">
+              <canvas id="glance-chart" width="100" height="100"></canvas>
+              <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center;font-size:11px;font-weight:500;line-height:1.3" id="glance-center"></div>
+            </div>
+            <div id="glance-legend" style="margin-top:8px"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TRANSACTIONS PAGE -->
+  <div id="page-transactions" class="page">
+    <div class="card" style="margin-bottom:10px;padding:10px 12px">
+      <div style="font-size:11px;font-weight:500;color:#888;margin-bottom:8px;text-transform:uppercase;letter-spacing:.5px">Add Transaction</div>
+      <div class="row-form">
+        <input class="inp" id="tx-date" type="date" style="width:120px">
+        <input class="inp" id="tx-desc" placeholder="Description" style="width:160px">
+        <input class="inp" id="tx-amt" type="number" placeholder="৳ Amount" style="width:110px">
+        <select class="inp" id="tx-cat" style="width:110px">
+          <option>Expenses</option><option>Income</option><option>Savings</option>
+          <option>Bills</option><option>Investments</option><option>Debt</option>
+        </select>
+        <input class="inp" id="tx-sub" placeholder="Subcategory (optional)" style="width:150px">
+        <button class="btn" onclick="addTransaction()">Add</button>
+      </div>
+    </div>
+    <div style="display:flex;gap:8px;margin-bottom:8px;align-items:center">
+      <span style="font-size:11px;color:#888">Filter:</span>
+      <select class="inp" id="filter-cat" style="width:130px" onchange="renderTransactions()">
+        <option value="">All categories</option>
+        <option>Expenses</option><option>Income</option><option>Savings</option>
+        <option>Bills</option><option>Investments</option><option>Debt</option>
+      </select>
+      <input class="inp" id="filter-month" type="month" style="width:130px" onchange="renderTransactions()">
+    </div>
+    <div class="card" style="padding:0">
+      <table class="tbl">
+        <thead><tr><th>Date</th><th>Description</th><th>Amount (BDT)</th><th>Category</th><th>Subcategory</th><th></th></tr></thead>
+        <tbody id="tx-tbody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- PORTFOLIO PAGE -->
+  <div id="page-portfolio" class="page">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+      <div>
+        <div class="section-head">Savings Goals</div>
+        <div class="card">
+          <div id="goals-list"><div class="empty-msg">No goals added yet</div></div>
+          <div style="display:flex;gap:4px;margin-top:8px">
+            <input class="inp" id="g-name" placeholder="Goal name" style="flex:1.5">
+            <input class="inp" id="g-target" type="number" placeholder="৳ Target" style="flex:1">
+            <input class="inp" id="g-saved" type="number" placeholder="৳ Saved" style="flex:1">
+            <button class="btn btn-sm" onclick="addGoal()">+</button>
+          </div>
+        </div>
+
+        <div class="section-head">Net Worth</div>
+        <div class="card">
+          <div style="display:flex;align-items:center;justify-content:space-between">
+            <span style="font-size:11px;color:#888">Assets − Liabilities</span>
+            <span style="font-size:20px;font-weight:500;color:#1D9E75" id="net-worth">৳0</span>
+          </div>
+          <div class="progress-bar" style="margin-top:8px"><div class="progress-fill" id="nw-bar" style="width:0%"></div></div>
+        </div>
+      </div>
+
+      <div>
+        <div class="section-head">Loans / Debt Tracker</div>
+        <div id="loans-list"><div class="empty-msg" style="padding:8px 0">No loans added yet</div></div>
+        <div style="display:flex;gap:4px;margin-top:8px">
+          <input class="inp" id="l-name" placeholder="Loan name" style="flex:1.5">
+          <input class="inp" id="l-bal" type="number" placeholder="৳ Balance" style="flex:1">
+          <input class="inp" id="l-paid" type="number" placeholder="৳ Paid" style="flex:1">
+          <button class="btn btn-sm" onclick="addLoan()">+</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+let transactions = JSON.parse(localStorage.getItem('bdt_tx')      || '[]');
+let planned      = JSON.parse(localStorage.getItem('bdt_planned') || '[]');
+let goals        = JSON.parse(localStorage.getItem('bdt_goals')   || '[]');
+let loans        = JSON.parse(localStorage.getItem('bdt_loans')   || '[]');
+
+let currentYear  = new Date().getFullYear();
+let currentMonth = new Date().getMonth();
+let barChart, donutChart, glanceChart;
+
+function save(){
+  try{
+    localStorage.setItem('bdt_tx',      JSON.stringify(transactions));
+    localStorage.setItem('bdt_planned', JSON.stringify(planned));
+    localStorage.setItem('bdt_goals',   JSON.stringify(goals));
+    localStorage.setItem('bdt_loans',   JSON.stringify(loans));
+  }catch(e){}
+}
+
+function fmt(n){
+  if(!n) return '৳0';
+  return '৳'+Math.abs(n).toLocaleString('en-BD',{minimumFractionDigits:2,maximumFractionDigits:2});
+}
+
+function showPage(id,e){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.getElementById('page-'+id).classList.add('active');
+  if(e) e.target.classList.add('active');
+  if(id==='monthly')      renderMonthly();
+  if(id==='transactions') renderTransactions();
+  if(id==='portfolio')    renderPortfolio();
+}
+
+function getMonthTx(y,m){
+  return transactions.filter(t=>{const d=new Date(t.date);return d.getFullYear()===y&&d.getMonth()===m;});
+}
+
+function renderMonthly(){
+  const txs=getMonthTx(currentYear,currentMonth);
+  const income      =txs.filter(t=>t.cat==='Income').reduce((s,t)=>s+t.amt,0);
+  const expenses    =txs.filter(t=>t.cat==='Expenses').reduce((s,t)=>s+t.amt,0);
+  const bills       =txs.filter(t=>t.cat==='Bills').reduce((s,t)=>s+t.amt,0);
+  const savings     =txs.filter(t=>t.cat==='Savings').reduce((s,t)=>s+t.amt,0);
+  const investments =txs.filter(t=>t.cat==='Investments').reduce((s,t)=>s+t.amt,0);
+  const debt        =txs.filter(t=>t.cat==='Debt').reduce((s,t)=>s+t.amt,0);
+  const totalOut    =expenses+bills+savings+investments+debt;
+  const remaining   =income-totalOut;
+  const savingsRate =income>0?((savings+investments)/income*100):0;
+  const totalPlanned=planned.filter(p=>p.cat!=='Income').reduce((s,p)=>s+p.plan,0);
+  const compliance  =(totalPlanned>0&&totalOut>0)?Math.max(0,(1-totalOut/totalPlanned)*100):0;
+
+  document.getElementById('kpi-income').textContent    =income>0?fmt(income):'৳0';
+  document.getElementById('kpi-expense').textContent   =(expenses+bills)>0?fmt(expenses+bills):'৳0';
+  document.getElementById('kpi-savings').textContent   =(savings+investments)>0?fmt(savings+investments):'৳0';
+  document.getElementById('kpi-remaining').textContent =remaining!==0?fmt(remaining):'৳0';
+  document.getElementById('kpi-remaining').style.color =remaining>=0?'#1D9E75':'#D85A30';
+  document.getElementById('savings-rate').textContent  =savingsRate.toFixed(2)+'%';
+  document.getElementById('budget-compliance').textContent=compliance.toFixed(2)+'%';
+
+  const mn=['January','February','March','April','May','June','July','August','September','October','November','December'];
+  document.getElementById('cal-title').textContent=mn[currentMonth]+' '+currentYear;
+
+  renderCalendar(txs);
+  renderPlannedTable(expenses,bills,savings,investments,debt,income);
+  renderSummary(income,expenses,bills,savings,investments,debt,remaining);
+  renderBarChart(income,expenses+bills);
+  renderDonut(txs);
+  renderGlance(expenses,bills,savings,investments,debt);
+}
+
+function renderCalendar(txs){
+  const grid=document.getElementById('cal-grid');
+  grid.innerHTML='';
+  const firstDay=new Date(currentYear,currentMonth,1).getDay();
+  const daysInMonth=new Date(currentYear,currentMonth+1,0).getDate();
+  const dayMap={};
+  txs.forEach(t=>{const d=new Date(t.date).getDate();if(!dayMap[d])dayMap[d]=0;dayMap[d]+=t.amt;});
+  for(let i=0;i<firstDay;i++){const b=document.createElement('div');b.style.minHeight='48px';grid.appendChild(b);}
+  for(let d=1;d<=daysInMonth;d++){
+    const cell=document.createElement('div');
+    cell.className='cal-day'+(dayMap[d]?' has-tx':'');
+    cell.innerHTML=`<div class="day-num">${d}</div>${dayMap[d]?`<div class="day-amt">৳${dayMap[d].toFixed(0)}</div>`:''}`;
+    grid.appendChild(cell);
+  }
+}
+
+function renderPlannedTable(expenses,bills,savings,investments,debt,income){
+  const actuals={Income:income,Expenses:expenses,Bills:bills,Savings:savings,Investments:investments,Debt:debt};
+  const tbody=document.getElementById('planned-tbody');
+  tbody.innerHTML='';
+  if(!planned.length){
+    tbody.innerHTML='<tr><td colspan="3" style="color:#bbb;font-size:11px;padding:8px">Set planned amounts below</td></tr>';
+    return;
+  }
+  planned.forEach(p=>{
+    const act=actuals[p.cat]||0;
+    const over=p.cat!=='Income'&&act>p.plan;
+    const tr=document.createElement('tr');
+    tr.innerHTML=`<td>${p.cat}</td><td>${fmt(p.plan)}</td><td style="color:${over?'#D85A30':'#1D9E75'}">${act>0?fmt(act):'—'}</td>`;
+    tbody.appendChild(tr);
+  });
+}
+
+function addPlanned(){
+  const cat=document.getElementById('p-cat').value;
+  const plan=parseFloat(document.getElementById('p-plan').value)||0;
+  if(!cat||!plan)return;
+  const ex=planned.find(p=>p.cat===cat);
+  if(ex)ex.plan=plan;else planned.push({cat,plan});
+  save();renderMonthly();
+  document.getElementById('p-cat').value='';
+  document.getElementById('p-plan').value='';
+}
+
+function renderSummary(income,expenses,bills,savings,investments,debt,remaining){
+  const tbody=document.getElementById('summary-tbody');
+  tbody.innerHTML='';
+  const rows=[
+    {label:'Income',     plan:planned.find(p=>p.cat==='Income')?.plan||0,       act:income},
+    {label:'Bills',      plan:planned.find(p=>p.cat==='Bills')?.plan||0,        act:bills},
+    {label:'Expenses',   plan:planned.find(p=>p.cat==='Expenses')?.plan||0,     act:expenses},
+    {label:'Savings',    plan:planned.find(p=>p.cat==='Savings')?.plan||0,      act:savings},
+    {label:'Investments',plan:planned.find(p=>p.cat==='Investments')?.plan||0,  act:investments},
+    {label:'Debt',       plan:planned.find(p=>p.cat==='Debt')?.plan||0,         act:debt},
+    {label:'Remaining',  plan:'',                                                act:remaining},
+  ];
+  rows.forEach(r=>{
+    const actColor=r.label==='Remaining'?(r.act>=0?'color:#1D9E75':'color:#D85A30'):'';
+    const tr=document.createElement('tr');
+    tr.innerHTML=`<td>${r.label}</td><td>${r.plan?fmt(r.plan):''}</td><td style="${actColor}">${r.act!==0?fmt(r.act):'—'}</td>`;
+    tbody.appendChild(tr);
+  });
+}
+
+function renderBarChart(income,expenses){
+  const barWrap=document.getElementById('bar-wrap');
+  const barEmpty=document.getElementById('bar-empty');
+  const plannedExp=planned.filter(p=>p.cat!=='Income').reduce((s,p)=>s+p.plan,0);
+  if(income===0&&expenses===0&&plannedExp===0){barWrap.style.display='none';barEmpty.style.display='block';return;}
+  barWrap.style.display='block';barEmpty.style.display='none';
+  if(barChart)barChart.destroy();
+  barChart=new Chart(document.getElementById('bar-chart'),{
+    type:'bar',
+    data:{labels:['Planned','Actual'],datasets:[{data:[plannedExp,expenses],backgroundColor:['#9FE1CB','#1D9E75'],borderRadius:3}]},
+    options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:v=>'৳'+v.raw.toLocaleString()}}},scales:{x:{ticks:{font:{size:10},callback:v=>'৳'+v.toLocaleString()},grid:{display:false}},y:{ticks:{font:{size:10}},grid:{display:false}}}}
+  });
+}
+
+function renderDonut(txs){
+  const catMap={};
+  txs.filter(t=>t.cat==='Expenses'||t.cat==='Bills').forEach(t=>{const sub=t.sub||t.cat;catMap[sub]=(catMap[sub]||0)+t.amt;});
+  const labels=Object.keys(catMap),data=Object.values(catMap);
+  const total=data.reduce((s,v)=>s+v,0);
+  const donutWrap=document.getElementById('donut-wrap'),donutEmpty=document.getElementById('donut-empty');
+  if(!labels.length){donutWrap.style.display='none';donutEmpty.style.display='block';return;}
+  donutWrap.style.display='flex';donutEmpty.style.display='none';
+  const colors=['#1D9E75','#D85A30','#378ADD','#BA7517','#D4537E','#7F77DD','#639922','#E24B4A'];
+  if(donutChart)donutChart.destroy();
+  donutChart=new Chart(document.getElementById('donut-chart'),{type:'doughnut',data:{labels,datasets:[{data,backgroundColor:colors.slice(0,labels.length),borderWidth:0}]},options:{responsive:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:v=>v.label+': ৳'+v.raw.toLocaleString()}}},cutout:'65%'}});
+  document.getElementById('donut-center').innerHTML='৳'+Math.round(total).toLocaleString();
+  const leg=document.getElementById('donut-legend');leg.innerHTML='';
+  labels.forEach((l,i)=>{const pct=total>0?(data[i]/total*100).toFixed(1):0;leg.innerHTML+=`<div class="legend-row"><span class="legend-dot" style="background:${colors[i%colors.length]}"></span><span>${l}</span><span style="margin-left:auto;font-weight:500">${pct}%</span></div>`;});
+}
+
+function renderGlance(expenses,bills,savings,investments,debt){
+  const cats=[{label:'Expenses',val:expenses,color:'#E24B4A'},{label:'Bills',val:bills,color:'#D85A30'},{label:'Savings',val:savings,color:'#1D9E75'},{label:'Investments',val:investments,color:'#378ADD'},{label:'Debt',val:debt,color:'#7F77DD'}].filter(c=>c.val>0);
+  const glanceWrap=document.getElementById('glance-wrap'),glanceEmpty=document.getElementById('glance-empty');
+  if(!cats.length){glanceWrap.style.display='none';glanceEmpty.style.display='block';return;}
+  glanceWrap.style.display='block';glanceEmpty.style.display='none';
+  if(glanceChart)glanceChart.destroy();
+  const total=cats.reduce((s,c)=>s+c.val,0);
+  glanceChart=new Chart(document.getElementById('glance-chart'),{type:'doughnut',data:{labels:cats.map(c=>c.label),datasets:[{data:cats.map(c=>c.val),backgroundColor:cats.map(c=>c.color),borderWidth:0}]},options:{responsive:false,plugins:{legend:{display:false}},cutout:'65%'}});
+  document.getElementById('glance-center').innerHTML='৳'+Math.round(total).toLocaleString();
+  const leg=document.getElementById('glance-legend');leg.innerHTML='';
+  cats.forEach(c=>{const pct=(c.val/total*100).toFixed(1);leg.innerHTML+=`<div class="legend-row"><span class="legend-dot" style="background:${c.color}"></span><span>${c.label}</span><span style="margin-left:auto">${pct}%</span></div>`;});
+}
+
+function prevMonth(){if(currentMonth===0){currentMonth=11;currentYear--;}else currentMonth--;renderMonthly();}
+function nextMonth(){if(currentMonth===11){currentMonth=0;currentYear++;}else currentMonth++;renderMonthly();}
+
+function addTransaction(){
+  const date=document.getElementById('tx-date').value;
+  const desc=document.getElementById('tx-desc').value.trim();
+  const amt=parseFloat(document.getElementById('tx-amt').value)||0;
+  const cat=document.getElementById('tx-cat').value;
+  const sub=document.getElementById('tx-sub').value.trim();
+  if(!date||!desc||!amt){alert('Please fill Date, Description and Amount.');return;}
+  transactions.push({id:Date.now(),date,desc,amt,cat,sub});
+  transactions.sort((a,b)=>new Date(b.date)-new Date(a.date));
+  save();
+  document.getElementById('tx-desc').value='';
+  document.getElementById('tx-amt').value='';
+  document.getElementById('tx-sub').value='';
+  renderTransactions();renderMonthly();
+}
+
+function renderTransactions(){
+  const filterCat=document.getElementById('filter-cat').value;
+  const filterMonth=document.getElementById('filter-month').value;
+  let txs=[...transactions];
+  if(filterCat)txs=txs.filter(t=>t.cat===filterCat);
+  if(filterMonth){const[fy,fm]=filterMonth.split('-').map(Number);txs=txs.filter(t=>{const d=new Date(t.date);return d.getFullYear()===fy&&d.getMonth()===fm-1;});}
+  const tbody=document.getElementById('tx-tbody');tbody.innerHTML='';
+  if(!txs.length){tbody.innerHTML='<tr><td colspan="6" style="text-align:center;color:#bbb;padding:20px;font-size:12px">No transactions yet. Add your first entry above.</td></tr>';return;}
+  txs.forEach(t=>{
+    const catColor=t.cat==='Income'?'#1D9E75':t.cat==='Savings'?'#378ADD':t.cat==='Investments'?'#7F77DD':'#D85A30';
+    const sign=t.cat==='Income'?'+':'-';
+    const tr=document.createElement('tr');
+    tr.innerHTML=`<td>${t.date}</td><td>${t.desc}</td><td style="color:${t.cat==='Income'?'#1D9E75':'#D85A30'};font-weight:500">${sign}${fmt(t.amt)}</td><td><span style="background:${catColor}22;color:${catColor};padding:2px 7px;border-radius:3px;font-size:10px;font-weight:500">${t.cat}</span></td><td style="color:#888">${t.sub||'—'}</td><td><button class="btn btn-red btn-sm" onclick="deleteTx(${t.id})">&#10005;</button></td>`;
+    tbody.appendChild(tr);
+  });
+}
+
+function deleteTx(id){transactions=transactions.filter(t=>t.id!==id);save();renderTransactions();renderMonthly();}
+
+function renderPortfolio(){renderGoals();renderLoans();calcNetWorth();}
+
+function addGoal(){
+  const name=document.getElementById('g-name').value.trim();
+  const target=parseFloat(document.getElementById('g-target').value)||0;
+  const saved=parseFloat(document.getElementById('g-saved').value)||0;
+  if(!name||!target)return;
+  goals.push({name,target,saved});save();renderGoals();calcNetWorth();
+  document.getElementById('g-name').value='';document.getElementById('g-target').value='';document.getElementById('g-saved').value='';
+}
+
+function renderGoals(){
+  const el=document.getElementById('goals-list');
+  if(!goals.length){el.innerHTML='<div class="empty-msg">No goals added yet</div>';return;}
+  el.innerHTML='';
+  goals.forEach((g,i)=>{
+    const pct=Math.min(100,g.target>0?(g.saved/g.target*100):0);
+    el.innerHTML+=`<div style="margin-bottom:10px"><div style="display:flex;justify-content:space-between;margin-bottom:3px"><span style="font-size:12px;font-weight:500">${g.name}</span><span style="font-size:11px;color:#888">${fmt(g.saved)} / ${fmt(g.target)}</span></div><div class="progress-bar"><div class="progress-fill" style="width:${pct}%"></div></div><div style="display:flex;justify-content:space-between;margin-top:2px"><span style="font-size:10px;color:#1D9E75">${pct.toFixed(1)}% complete</span><button class="btn btn-red btn-sm" onclick="deleteGoal(${i})">&#10005;</button></div></div>`;
+  });
+}
+
+function deleteGoal(i){goals.splice(i,1);save();renderGoals();calcNetWorth();}
+
+function addLoan(){
+  const name=document.getElementById('l-name').value.trim();
+  const balance=parseFloat(document.getElementById('l-bal').value)||0;
+  const paid=parseFloat(document.getElementById('l-paid').value)||0;
+  if(!name||!balance)return;
+  loans.push({name,balance,paid});save();renderLoans();calcNetWorth();
+  document.getElementById('l-name').value='';document.getElementById('l-bal').value='';document.getElementById('l-paid').value='';
+}
+
+function renderLoans(){
+  const el=document.getElementById('loans-list');
+  if(!loans.length){el.innerHTML='<div class="empty-msg" style="padding:8px 0">No loans added yet</div>';return;}
+  el.innerHTML='';
+  loans.forEach((l,i)=>{
+    const remainder=l.balance-l.paid;
+    const pct=l.balance>0?(l.paid/l.balance*100):0;
+    el.innerHTML+=`<div class="card" style="margin-bottom:8px"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px"><span style="font-weight:500;font-size:12px">${l.name}</span><button class="btn btn-red btn-sm" onclick="deleteLoan(${i})">&#10005;</button></div><table class="tbl"><tr><td>Total Balance</td><td style="font-weight:500">${fmt(l.balance)}</td></tr><tr><td>Paid</td><td style="color:#1D9E75;font-weight:500">${fmt(l.paid)}</td></tr><tr><td>Remaining</td><td style="color:#D85A30;font-weight:500">${fmt(remainder)}</td></tr></table><div class="progress-bar" style="margin-top:6px"><div class="progress-fill" style="width:${pct}%;background:#D85A30"></div></div><span style="font-size:10px;color:#D85A30">${pct.toFixed(1)}% paid off</span></div>`;
+  });
+}
+
+function deleteLoan(i){loans.splice(i,1);save();renderLoans();calcNetWorth();}
+
+function calcNetWorth(){
+  const assets=goals.reduce((s,g)=>s+g.saved,0);
+  const liabilities=loans.reduce((s,l)=>s+(l.balance-l.paid),0);
+  const nw=assets-liabilities;
+  document.getElementById('net-worth').textContent=(nw<0?'-':'')+fmt(nw);
+  document.getElementById('net-worth').style.color=nw>=0?'#1D9E75':'#D85A30';
+  const pct=assets>0?Math.min(100,(assets/(assets+liabilities))*100):0;
+  document.getElementById('nw-bar').style.width=pct+'%';
+}
+
+const today=new Date();
+document.getElementById('tx-date').value=today.toISOString().split('T')[0];
+document.getElementById('filter-month').value=today.getFullYear()+'-'+(String(today.getMonth()+1).padStart(2,'0'));
+renderMonthly();
+renderTransactions();
+</script>
+</body>
+</html>
